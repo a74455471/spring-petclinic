@@ -4,6 +4,9 @@ pipeline {
     maven "M3"
     jdk "JDK17"
   }
+  environment{
+    DOCKERHUB_CREDENTIALS = credentials('dockerCredentials')
+  }
   stages{
     stage('Git Clone'){
       steps {
@@ -21,6 +24,16 @@ pipeline {
         docker build -t haeguri/spring-petclinic:$BUILD_NUMBER .
         docker tag haeguri/spring-petclinic:$BUILD_NUMBER haeguri/spring-petclinic:latest
         """
+      }
+    }
+    stage('Docker Hub Login') {
+      steps{
+        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+      }
+    }
+    stage('Docker Image Push') {
+      steps{
+        sh 'docker push haeguri/spring-petclinic:latest'
       }
     }
   }
